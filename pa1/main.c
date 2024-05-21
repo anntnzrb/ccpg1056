@@ -7,7 +7,7 @@
 
 #define BUFFER_TAM 1024
 
-void
+static void
 err(const char *msg, const char *perror_msg) {
     fprintf(stderr, "Error: %s\n", msg);
     perror(perror_msg);
@@ -15,7 +15,7 @@ err(const char *msg, const char *perror_msg) {
     exit(EXIT_FAILURE);
 }
 
-void
+static void
 cp_data(const int fd_in, const int fd_out) {
     ssize_t bytes_leidos = 0;
     ssize_t bytes_escritos = 0;
