@@ -1,8 +1,8 @@
-CFLAGS = -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wunreachable-code -std=c11
-
-SRC = main.c
+CFLAGS = -Wall -Wextra -Wpedantic -Werror -Wshadow -Wconversion -Wunreachable-code -std=c11
+SRC_DIR = src
 BUILD_DIR = build
 BIN = $(BUILD_DIR)/mycat
+SRC = $(wildcard $(SRC_DIR)/*.c)
 
 # default
 all:
@@ -14,14 +14,16 @@ all:
 
 build: $(SRC)
 	@mkdir -p $(BUILD_DIR)
+	@printf "Building the project...\\n"
 	@cc $(CFLAGS) -o $(BIN) $(SRC)
 
 run: build
-	@./$(BIN)
+	@printf "Running the project...\\n"
+	@./$(BIN) data/names.data
 
 fmt:
-	@printf "Formatting src tree...\\n"
-	@nix fmt
+	@printf "Formatting the code...\\n"
+	nix fmt
 
 clean:
 	@printf "Cleaning up...\\n"
