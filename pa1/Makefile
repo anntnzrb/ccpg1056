@@ -3,6 +3,7 @@ LDFLAGS = -flto
 
 SRC_DIR = src
 BUILD_DIR = build
+DOCS_DIR = docs
 
 BIN = $(BUILD_DIR)/mycat
 SRC = $(wildcard $(SRC_DIR)/*.c)
@@ -13,8 +14,8 @@ DEPS = $(OBJ:.o=.d)
 all: help
 
 build: $(OBJ)
-	@mkdir -p $(BUILD_DIR)
 	@printf "Building project...\\n"
+	@mkdir -p $(BUILD_DIR)
 	@cc $(CFLAGS) $(LDFLAGS) -o $(BIN) $(OBJ)
 
 run: build
@@ -29,6 +30,10 @@ fmt:
 clean:
 	@printf "Cleaning up...\\n"
 	@rm -Rf $(BUILD_DIR)
+
+docs:
+	@printf "Building docs...\\n"
+	typst compile --root $(DOCS_DIR) $(DOCS_DIR)/main.typ 'reporte.pdf'
 
 help:
 	@printf "Choose a target to execute:\\n"
@@ -46,4 +51,4 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@cc $(CFLAGS) -MMD -MP -c -o $@ $<
 
 # targets
-.PHONY: all help build run fmt clean
+.PHONY: all help build run fmt clean docs
