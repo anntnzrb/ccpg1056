@@ -33,6 +33,7 @@ timeshmm: $(BUILD_DIR)/timeshmm.o $(BUILD_DIR)/common.o
 	@$(CC) $(LDFLAGS) -o $(BUILD_DIR)/$@ $^
 
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
+	@mkdir -p $(BUILD_DIR)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
 # format src tree
