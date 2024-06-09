@@ -4,7 +4,7 @@
 #include <sys/time.h>
 
 // macro de conveniencia para ejecutar un comando
-#define RUN_CMD(cmd, args) execlp(cmd, cmd, args, (char *)NULL)
+#define RUN_CMD(cmd, args) execvp(cmd, args)
 
 // time struct
 typedef struct {

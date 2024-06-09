@@ -35,7 +35,7 @@ main(int argc, char **argv) {
         }
         close(pipefd[1]); // close pipe
 
-        if (RUN_CMD(argv[1], argv[2]) == -1) {
+        if (RUN_CMD(argv[1], &argv[1]) == -1) {
             die("exec");
         }
 

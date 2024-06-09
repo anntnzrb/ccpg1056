@@ -29,8 +29,9 @@ main(int argc, char **argv) {
 
     if (pid == 0) { // child proc
         obtener_tiempo(&shared_data->start_time);
-        RUN_CMD(argv[1], argv[2]);
-        die("exec");
+        if (RUN_CMD(argv[1], &argv[1]) == -1) {
+            die("exec");
+        }
     } else { // parent proc
         wait(NULL);
         obtener_tiempo(&shared_data->end_time);

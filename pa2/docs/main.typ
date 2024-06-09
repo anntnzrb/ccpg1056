@@ -10,15 +10,13 @@
 )
 
 = Problemática a Resolver
-En este trabajo se solicitó diseñar y desarrollar dos programas en *C*
-(`timeshmm.c` y `timepipe.c`) que calculen el tiempo de ejecución de un comando
-especificado desde la línea de comandos. Los programas deben gestionar la
-comunicación entre procesos usando dos técnicas diferentes de IPC: *Shared
-Memory* y *Pipes*.
+En este trabajo se solicitó diseñar y desarrollar dos programas en *C* (`timeshmm.c` y `timepipe.c`)
+que calculen el tiempo de ejecución de un comando especificado desde la línea de
+comandos. Los programas deben gestionar la comunicación entre procesos usando
+dos técnicas diferentes de IPC: *Shared Memory* y *Pipes*.
 
 #figure(
-  image("assets/cap_demo.png", width: 90%),
-  caption: "Ejecución del programa con el comando ls",
+  image("assets/cap_demo.png", width: 90%), caption: "Ejecución del programa con el comando ls",
 )
 
 = Limitaciones y Resoluciónes
@@ -32,36 +30,35 @@ implementadas en los archivos adjuntos.
   motivos, fallos en la creación de shared memory o pipe, fallos en
   `fork()` o `exec()`, entre otros problemas de sincronización.
 
-- *Resolución*: Se implementó manejo de errores en ambos programas. Se
-  verifican los resultados de las llamadas a `shmget()`, `shmat()`, `pipe()`,
+- *Resolución*: Se implementó manejo de errores en ambos programas. Se verifican
+  los resultados de las llamadas a `shmget()`, `shmat()`, `pipe()`,
   `fork()`, y `exec()`. Si alguna de estas llamadas falla, el programa imprime un
   mensaje de error y termina correctamente.
 
 == Precisión de la Medición del Tiempo
-- *Limitación*: La función `gettimeofday()` empleada tiene una precisión
-  limitada a microsegundos, lo que puede no ser suficiente para comandos de muy
-  corta duración o en sistemas con alta carga de procesos
+- *Limitación*: La función `gettimeofday()` empleada tiene una precisión limitada
+  a microsegundos, lo que puede no ser suficiente para comandos de muy corta
+  duración o en sistemas con alta carga de procesos
 
 - *Resolución*: No se puede aumentar la precisión de `gettimeofday()`, pero se
-  optó por registrar los tiempos minimizando el código entre las llamadas a
-  esta función y la ejecución del comando
+  optó por registrar los tiempos minimizando el código entre las llamadas a esta
+  función y la ejecución del comando
 
 #pagebreak()
 
 == Uso de Recursos del Sistema
-- *Descripción*: El uso excesivo de recursos del sistema (shard memoory o
-  pipes) puede afectar el rendimiento del sistema y la precisión de las
-  mediciones.
+- *Descripción*: El uso excesivo de recursos del sistema (shard memoory o pipes)
+  puede afectar el rendimiento del sistema y la precisión de las mediciones.
 
-- *Resolución*: La shared memory y las pipes se crean y destruyen al
-  finalizar su trasbajo. En `timeshmm.c`, se libera la shared memory al finalizar
-  la lectura del proceso padre. En `timepipe.c`, se cierran las pipes
-  adecuadamente después de la lectura y escritura de los datos.
+- *Resolución*: La shared memory y las pipes se crean y destruyen al finalizar su
+  trasbajo. En `timeshmm.c`, se libera la shared memory al finalizar la lectura
+  del proceso padre. En `timepipe.c`, se cierran las pipes adecuadamente después
+  de la lectura y escritura de los datos.
 
 == Redundancia y Mantenimiento del Código
-- *Descripción*: Durante la implementación se identificaron partes del código
-  que eran muy repetitivas, por lo que se optó por reorganizar el código para
-  reducir la redundancia y facilitar el mantenimiento.
+- *Descripción*: Durante la implementación se identificaron partes del código que
+  eran muy repetitivas, por lo que se optó por reorganizar el código para reducir
+  la redundancia y facilitar el mantenimiento.
 
 - *Resolución*: Se creó un archivo común (`common.c` y `common.h`) donde se
   agruparon las funciones y definiciones compartidas entre ambos programas. Esta
@@ -72,14 +69,18 @@ implementadas en los archivos adjuntos.
 
 = Salidas de Pantalla y Ejecución
 #figure(
-  image("assets/cap_cat.png", width: 90%),
-  caption: "Ejecución de timeshmm y timepipe con el comando cat",
+  image("assets/cap_grep.png", width: 90%), caption: "Ejecución de timeshmm y timepipe con el comando grep (con argumentos)",
 )
 
 #figure(
-  image("assets/cap_lsblk.png", width: 90%),
-  caption: "Ejecución de timeshmm y timepipe con el comando lsblk",
+  image("assets/cap_du.png", width: 90%), caption: "Ejecución de timeshmm y timepipe con el comando du (con argumentos)",
 )
+
+Los resultados de las pruebas muestran que ambos programas son capaces de medir
+correctamente el tiempo de ejecución de comandos con múltiples argumentos. Las
+diferencias en los tiempos medidos son mínimas y pueden atribuirse a la
+precisión de la función `gettimeofday()` y a la carga del sistema en el momento
+de la ejecución.
 
 #pagebreak()
 
@@ -117,8 +118,9 @@ main(int argc, char **argv) {
 
     if (pid == 0) { // child proc
         obtener_tiempo(&shared_data->start_time);
-        RUN_CMD(argv[1], argv[2]);
-        die("exec");
+        if (RUN_CMD(argv[1], &argv[1]) == -1) {
+            die("exec");
+        }
     } else { // parent proc
         wait(NULL);
         obtener_tiempo(&shared_data->end_time);
@@ -140,61 +142,107 @@ main(int argc, char **argv) {
 #pagebreak()
 
 == Código Fuente de `timepipe.c`
-#code(lang: "C", ```c
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#code(
+  lang: "C", ```c
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <string.h>
+  #include <sys/wait.h>
+  #include <unistd.h>
 
-#include "../include/common.h"
+  #include "../include/common.h"
 
-int
-main(int argc, char **argv) {
-    if (argc < 2) {
-        fprintf(stderr, "Uso: %s <comando> [args...]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
+  int
+  main(int argc, char **argv) {
+      if (argc < 2) {
+          fprintf(stderr, "Uso: %s <comando> [args...]\n", argv[0]);
+          exit(EXIT_FAILURE);
+      }
 
-    // crear shared mem
-    shared_data_t *shared_data =
-        mmap(NULL, sizeof(shared_data_t), PROT_READ | PROT_WRITE,
-             MAP_SHARED | MAP_ANONYMOUS, -1, 0);
-    if (shared_data == MAP_FAILED) {
-        die("mmap");
-    }
+      int pipefd[2];
+      if (pipe(pipefd) == -1) {
+          die("pipe");
+      }
 
-    const pid_t pid = fork();
-    if (pid == -1) {
-        die("fork");
-    }
+      const pid_t pid = fork();
+      if (pid == -1) {
+          die("fork");
+      }
 
-    if (pid == 0) { // child proc
-        obtener_tiempo(&shared_data->start_time);
-        RUN_CMD(argv[1], argv[2]);
-        die("exec");
-    } else { // parent proc
-        wait(NULL);
-        obtener_tiempo(&shared_data->end_time);
+      if (pid == 0) {       // child proc
+          close(pipefd[0]); // close pipe
 
-        const double elapsed = calcular_tiempo_transcurrido(
-            shared_data->start_time, shared_data->end_time);
-        printf("Tiempo transcurrido: %.6f segundos\n", elapsed);
+          struct timeval start_time;
+          obtener_tiempo(&start_time);
 
-        // free shared mem
-        if (munmap(shared_data, sizeof(shared_data_t)) == -1) {
-            die("munmap");
-        }
-    }
+          // escribir en el pipe el tiempo de inicio
+          if (write(pipefd[1], &start_time, sizeof(start_time)) == -1) {
+              die("write");
+          }
+          close(pipefd[1]); // close pipe
 
-    return EXIT_SUCCESS;
-}
-  ```)
+          if (RUN_CMD(argv[1], &argv[1]) == -1) {
+              die("exec");
+          }
+
+      } else {              // parent proc
+          close(pipefd[1]); // close pipe
+
+          struct timeval start_time, end_time;
+
+          // leer del pipe el tiempo de inicio
+          if (read(pipefd[0], &start_time, sizeof(start_time)) == -1) {
+              die("read");
+          }
+          close(pipefd[0]); // close pipe
+
+          // esperar a que el hijo termine
+          wait(NULL);
+          obtener_tiempo(&end_time);
+
+          double elapsed = calcular_tiempo_transcurrido(start_time, end_time);
+          printf("Tiempo transcurrido: %.6f segundos\n", elapsed);
+      }
+
+      return 0;
+  }
+    ```,
+)
 
 #pagebreak()
 
-== Código Fuente de `common.c` y `common.h`
+== Código Fuente de `common.h` y `common.c`
+#code(lang: "C", ```c
+// common.h
+#ifndef COMMON_H
+#define COMMON_H
+
+#include <sys/time.h>
+
+// macro de conveniencia para ejecutar un comando
+#define RUN_CMD(cmd, args) execvp(cmd, args)
+
+// time struct
+typedef struct {
+    struct timeval start_time;
+    struct timeval end_time;
+} shared_data_t;
+
+// fn para obtener el tiempo actual
+void
+obtener_tiempo(struct timeval *val);
+
+// fn para calcular el tiempo transcurrido
+double
+calcular_tiempo_transcurrido(struct timeval start, struct timeval end);
+
+// fn para imprimir un mensaje de error y terminar el programa
+void
+die(const char *msg);
+
+#endif // COMMON_H
+  ```)
+
 #code(lang: "C", ```c
 // common.c
 #include <stdio.h>
@@ -222,35 +270,6 @@ die(const char *msg) {
 }
   ```)
 
-#code(lang: "C", ```c
-// common.h
-#ifndef COMMON_H
-#define COMMON_H
+#pagebreak()
 
-#include <sys/time.h>
-
-// macro de conveniencia para ejecutar un comando
-#define RUN_CMD(cmd, args) execlp(cmd, cmd, args, (char *)NULL)
-
-// time struct
-typedef struct {
-    struct timeval start_time;
-    struct timeval end_time;
-} shared_data_t;
-
-// fn para obtener el tiempo actual
-void
-obtener_tiempo(struct timeval *val);
-
-// fn para calcular el tiempo transcurrido
-double
-calcular_tiempo_transcurrido(struct timeval start, struct timeval end);
-
-// fn para imprimir un mensaje de error y terminar el programa
-void
-die(const char *msg);
-
-#endif // COMMON_H
-  ```)
-
-//#bibliography("bib.bib", full: true, style: "apa")
+#bibliography("bib.bib", full: true, style: "ieee")
