@@ -25,6 +25,6 @@ testmem: ex5
 
 docs:
 	@printf "Building docs...\\n"
-	typst compile --root $(DOCS_DIR) $(DOCS_DIR)/main.typ 'reporte.pdf'
+	typst compile --root $(DOCS_DIR) $(DOCS_DIR)/main.typ 'reporte-Threads.pdf'
 
 .PHONY: all clean test testmem ex5 docs
