@@ -53,6 +53,11 @@
               customizations.vscode.extensions = [
                 "mkhl.direnv"
                 "jnoortheen.nix-ide"
+
+                "tomoki1207.pdf"
+
+                "ms-vscode.cpptools-extension-pack"
+                "ms-vscode.makefile-tools"
               ];
             };
           };
