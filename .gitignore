@@ -5,6 +5,7 @@ result*
 .direnv
 .devenv
 build/
+*.zip
 
 # typst
 *.pdf
