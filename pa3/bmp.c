@@ -130,7 +130,7 @@ writeImage(char *destFileName, BMP_Image *dataImage) {
     for (int i = 0; i < dataImage->norm_height; i++) {
         if (fwrite(dataImage->pixels[i], sizeof(Pixel),
                    dataImage->header.width_px,
-                   destFile) != dataImage->header.width_px) {
+                   destFile) != (size_t)dataImage->header.width_px) {
             printError(MEMORY_ERROR);
             exit(EXIT_FAILURE);
         }

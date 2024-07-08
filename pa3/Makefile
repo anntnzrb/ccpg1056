@@ -1,6 +1,8 @@
 CC = gcc
-CFLAGS = -Wall -Wshadow -O3 -march=native
+CFLAGS = -Wall -Wextra -Wpedantic -Werror -Wshadow -Wunreachable-code -std=c11 -O2
 OBJS = ex5.o bmp.o filter.o
+
+DOCS_DIR = docs
 
 all: clean ex5
 
@@ -21,4 +23,8 @@ test: ex5
 testmem: ex5
 	valgrind --tool=memcheck --leak-check=summary ./ex5 testcases/test.bmp outputs/test_out.bmp
 
-.PHONY: all clean test testmem ex5
+docs:
+	@printf "Building docs...\\n"
+	typst compile --root $(DOCS_DIR) $(DOCS_DIR)/main.typ 'reporte.pdf'
+
+.PHONY: all clean test testmem ex5 docs
