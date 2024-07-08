@@ -4,6 +4,10 @@ result*
 ### misc ###
 .direnv
 .devenv
+build/
+
+# typst
+*.pdf
 
 ### C ###
 *.d
