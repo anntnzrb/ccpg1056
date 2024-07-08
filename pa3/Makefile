@@ -27,4 +27,8 @@ docs:
 	@printf "Building docs...\\n"
 	typst compile --root $(DOCS_DIR) $(DOCS_DIR)/main.typ 'reporte-Threads.pdf'
 
-.PHONY: all clean test testmem ex5 docs
+fmt:
+	@printf "Formatting src tree...\\n"
+	@nix fmt
+
+.PHONY: all clean test testmem ex5 docs fmt
